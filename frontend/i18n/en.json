@@ -1,0 +1,255 @@
+{
+  "common": {
+    "brand": "TaskMate AI",
+    "tagline": "AI productivity co-pilot for fast-moving teams",
+    "cta": "Start on Telegram",
+    "description": "TaskMate AI orchestrates tasks, reminders, and insights across chat, web, and admin touchpoints.",
+    "footer": {
+      "rights": "All rights reserved.",
+      "tagline": "TaskMate AI keeps hybrid teams aligned with multilingual automation.",
+      "contact": "Contact support",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    }
+  },
+  "meta": {
+    "title": "TaskMate AI · Multilingual productivity assistant",
+    "description": "Automate task capture, reminders, and organizational reporting with an AI assistant that speaks English, Farsi, and Arabic.",
+    "keywords": "TaskMate AI, productivity assistant, Telegram bot, multilingual task manager, AI reminders",
+    "ogTitle": "TaskMate AI — Your multilingual productivity assistant",
+    "ogDescription": "Capture work from chat, voice, and screenshots while TaskMate AI automates reminders, reports, and analytics.",
+    "siteName": "TaskMate AI",
+    "twitterHandle": "@taskmateai"
+  },
+  "nav": {
+    "home": "Home",
+    "features": "Features",
+    "pricing": "Pricing",
+    "guide": "Guide",
+    "blog": "Blog",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "contact": "Contact",
+    "enterprise": "Enterprise"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Multilingual AI productivity assistant",
+      "title": "Delegate routine coordination and stay focused on deep work",
+      "subtitle": "TaskMate AI captures tasks from Telegram, web, and email, schedules smart reminders, and delivers instant reports to leaders.",
+      "secondaryCta": "Explore features",
+      "stats": [
+        {
+          "label": "Teams activated",
+          "value": "120+"
+        },
+        {
+          "label": "Automated reminders",
+          "value": "45k/month"
+        },
+        {
+          "label": "Languages supported",
+          "value": "3"
+        }
+      ]
+    },
+    "featureHighlights": {
+      "title": "Why teams choose TaskMate AI",
+      "cards": [
+        {
+          "title": "Unified capture",
+          "description": "Turn chats, voice notes, and screenshots into structured tasks with instant follow-ups.",
+          "badge": "AI parsing"
+        },
+        {
+          "title": "Smart nudges",
+          "description": "Adaptive reminders respect working hours and local holidays for every teammate.",
+          "badge": "Context aware"
+        },
+        {
+          "title": "Ready-to-share reports",
+          "description": "Send localized PDF or CSV summaries to managers with one tap.",
+          "badge": "Insights"
+        }
+      ]
+    },
+    "workflow": {
+      "title": "From intent to action in seconds",
+      "steps": [
+        {
+          "title": "Capture",
+          "description": "Log a task from Telegram, forward a voice message, or upload a project screenshot.",
+          "icon": "📝"
+        },
+        {
+          "title": "Enrich",
+          "description": "TaskMate AI detects language, priority, and owners based on organizational rules.",
+          "icon": "🧠"
+        },
+        {
+          "title": "Track",
+          "description": "Automatic reminders keep teams on schedule while analytics surface blockers early.",
+          "icon": "📊"
+        }
+      ]
+    },
+    "testimonial": {
+      "quote": "TaskMate AI replaced three separate tools and finally gave our distributed org a shared rhythm.",
+      "attribution": "Sahar D., Operations Lead"
+    }
+  },
+  "featuresPage": {
+    "title": "Features",
+    "intro": "A connected workspace that meets people where they already collaborate.",
+    "sections": {
+      "automation": {
+        "title": "Automation from chat to dashboard",
+        "description": "Every message, voice memo, or image can become an actionable task enriched with owners, due dates, and reminders.",
+        "points": [
+          "Language detection with locale-specific templates",
+          "Voice-to-text and screenshot OCR pipelines",
+          "Granular RBAC for org, team, and personal spaces"
+        ]
+      },
+      "collaboration": {
+        "title": "Collaboration across teams",
+        "description": "Share projects between teams, track dependencies, and surface cross-org analytics instantly.",
+        "points": [
+          "Team and project level dashboards",
+          "Inline approvals and mentions in Telegram",
+          "Enterprise-grade audit logs"
+        ]
+      },
+      "insights": {
+        "title": "Insights on autopilot",
+        "description": "Generate localized PDF, CSV, and chat-ready updates for daily, weekly, and monthly cadences.",
+        "points": [
+          "Smart summaries for managers",
+          "Trial-to-paid conversion analytics",
+          "Integrations with accounting exports"
+        ]
+      }
+    }
+  },
+  "pricingPage": {
+    "title": "Pricing",
+    "subtitle": "Flexible plans that scale with your organization.",
+    "plans": [
+      {
+        "name": "Starter",
+        "price": "$0",
+        "period": "per org / 10-day trial",
+        "features": [
+          "Unlimited personal tasks",
+          "Daily summaries on Telegram",
+          "Single team workspace"
+        ]
+      },
+      {
+        "name": "Growth",
+        "price": "$12",
+        "period": "per user / month",
+        "features": [
+          "Org-wide analytics dashboards",
+          "Automated PDF & CSV reports",
+          "Team managers & approvals"
+        ]
+      },
+      {
+        "name": "Enterprise",
+        "price": "Let's talk",
+        "period": "custom contract",
+        "features": [
+          "Dedicated success manager",
+          "Self-hosted or hybrid deployment",
+          "Priority SLA & compliance add-ons"
+        ]
+      }
+    ],
+    "finePrint": "Prices exclude regional taxes. Volume discounts available for >250 seats."
+  },
+  "guidePage": {
+    "title": "User guide",
+    "description": "Everything you need to launch TaskMate AI for your team.",
+    "lastUpdated": "Last updated"
+  },
+  "blogPage": {
+    "title": "Latest from the team",
+    "description": "Product updates, customer stories, and productivity best practices.",
+    "empty": "No posts yet. Check back soon!",
+    "readMore": "Read more"
+  },
+  "termsPage": {
+    "title": "Terms of service",
+    "intro": "By using TaskMate AI you agree to the following terms.",
+    "sections": [
+      {
+        "heading": "Use of service",
+        "body": "You are responsible for the content submitted via TaskMate AI and must respect local laws."
+      },
+      {
+        "heading": "Data processing",
+        "body": "We store data in secure EU data centers and comply with customer deletion requests within 30 days."
+      },
+      {
+        "heading": "Availability",
+        "body": "Scheduled maintenance windows are communicated 72 hours in advance."
+      }
+    ]
+  },
+  "privacyPage": {
+    "title": "Privacy notice",
+    "intro": "We prioritize transparency about how data flows through TaskMate AI.",
+    "sections": [
+      {
+        "heading": "What we collect",
+        "body": "Profile information, task metadata, and usage analytics necessary to provide the service."
+      },
+      {
+        "heading": "Why we collect",
+        "body": "To deliver reminders, reporting, billing, and to continuously improve the assistant experience."
+      },
+      {
+        "heading": "Your choices",
+        "body": "Export or delete your data anytime from the admin panel or by contacting support@taskmate.ai."
+      }
+    ]
+  },
+  "contactPage": {
+    "title": "Contact",
+    "description": "We'd love to hear from you.",
+    "sections": {
+      "sales": {
+        "title": "Sales",
+        "body": "enterprise@taskmate.ai"
+      },
+      "support": {
+        "title": "Support",
+        "body": "support@taskmate.ai"
+      },
+      "press": {
+        "title": "Press",
+        "body": "press@taskmate.ai"
+      }
+    }
+  },
+  "enterprisePage": {
+    "title": "Enterprise",
+    "intro": "Deploy TaskMate AI with enterprise-grade controls and onboarding.",
+    "highlights": [
+      {
+        "title": "Regional hosting",
+        "description": "Choose EU or MENA data residency with dedicated isolation options."
+      },
+      {
+        "title": "Security & compliance",
+        "description": "SSO/SAML, SCIM provisioning, and continuous audit trails simplify governance."
+      },
+      {
+        "title": "Tailored onboarding",
+        "description": "White-glove rollout with localized training for every department."
+      }
+    ],
+    "cta": "Book an enterprise session"
+  }
+}
