@@ -1,0 +1,95 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    env_file: .env
+    environment:
+      OPENAI_API_KEY: \${OPENAI_API_KEY:-}
+      TELEGRAM_BOT_TOKEN: \${TELEGRAM_BOT_TOKEN:-}
+      ZIBAL_MERCHANT_ID: \${ZIBAL_MERCHANT_ID:-}
+      CRYPTOBOT_API_TOKEN: \${CRYPTOBOT_API_TOKEN:-}
+      DATABASE_DSN: \${POSTGRES_DSN:-postgresql+psycopg://postgres:postgres@db:5432/taskmate}
+      REDIS_URL: \${REDIS_URL:-redis://redis:6379/0}
+      JWT_SECRET: \${JWT_SECRET:-change-me}
+      JWT_ADMIN_EXPIRES_HOURS: \${JWT_ADMIN_EXPIRES_HOURS:-24}
+      JWT_ORGADMIN_EXPIRES_HOURS: \${JWT_ORGADMIN_EXPIRES_HOURS:-24}
+      DEFAULT_TIMEZONE: \${DEFAULT_TIMEZONE:-Europe/Stockholm}
+      DEFAULT_LOCALE: \${DEFAULT_LOCALE:-en}
+      FILE_RETENTION_DAYS: \${FILE_RETENTION_DAYS:-7}
+      SENTRY_DSN: \${SENTRY_DSN:-}
+      LOG_LEVEL: \${LOG_LEVEL:-INFO}
+      ENABLE_EIGAN_SYNC: \${ENABLE_EIGAN_SYNC:-false}
+      ENABLE_CLICKUP_SYNC: \${ENABLE_CLICKUP_SYNC:-false}
+    depends_on:
+      - db
+      - redis
+    ports:
+      - '8000:8000'
+    networks:
+      - taskmate
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: production
+    ports:
+      - '3000:3000'
+    networks:
+      - taskmate
+
+  admin:
+    build:
+      context: ./admin-panel
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: production
+      VITE_API_URL: \${VITE_API_URL:-http://nginx}
+    ports:
+      - '4173:4173'
+    networks:
+      - taskmate
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: \${POSTGRES_USER}
+      POSTGRES_PASSWORD: \${POSTGRES_PASSWORD}
+      POSTGRES_DB: \${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - taskmate
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - taskmate
+
+  nginx:
+    build:
+      context: ./nginx
+    depends_on:
+      - backend
+      - frontend
+      - admin
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - nginx_certs:/etc/nginx/certs
+    networks:
+      - taskmate
+
+volumes:
+  postgres_data:
+  nginx_certs:
+
+networks:
+  taskmate:
+    driver: bridge
