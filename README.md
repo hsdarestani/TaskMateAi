@@ -31,6 +31,34 @@ TaskMate AI is a Docker-first monorepo bundling the core user workspace, an admi
 
 4. Health check: `GET http://localhost/healthz`
 
+### Creating the first admin user
+
+1. Ensure the database container is running and migrations have been applied:
+
+   ```bash
+   docker compose up -d
+   docker compose exec backend alembic upgrade head
+   ```
+
+2. Generate a password hash inside the backend container (replace `SuperSecret123` with your desired password—bcrypt only accepts the first 72 bytes, so pick something shorter than that limit):
+
+   ```bash
+   docker compose exec backend python -c "from backend.core.security import hash_password; print(hash_password('SuperSecret123'))"
+   ```
+
+   Copy the resulting hash value from the command output.
+
+   > **Tip:** If you prefer a longer passphrase, truncate it before hashing (for example `print(hash_password('my passphrase'[:72]))`) so the bcrypt handler accepts it.
+
+3. Insert the admin user into PostgreSQL, substituting your username and the copied hash:
+
+   ```bash
+   docker compose exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+     -c "INSERT INTO admin_users (username, password_hash) VALUES ('admin', 'PASTE_HASH_HERE');"
+   ```
+
+You can now sign in to the admin panel at `http://localhost/admin` using the username you inserted and the original password from step 2.
+
 ## Services
 
 | Service   | Port | Description |
