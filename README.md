@@ -20,7 +20,7 @@ TaskMate AI is a Docker-first monorepo bundling the core user workspace, an admi
 2. Bring the full stack online:
 
    ```bash
-   docker-compose up -d --build
+   docker compose up -d --build
    ```
 
 3. Access the services:
@@ -30,6 +30,34 @@ TaskMate AI is a Docker-first monorepo bundling the core user workspace, an admi
    - Admin panel: `http://localhost/admin`
 
 4. Health check: `GET http://localhost/healthz`
+
+### Creating the first admin user
+
+1. Ensure the database container is running and migrations have been applied:
+
+   ```bash
+   docker compose up -d
+   docker compose exec backend alembic upgrade head
+   ```
+
+2. Generate a password hash inside the backend container (replace `SuperSecret123` with your desired password—bcrypt only accepts the first 72 bytes, so pick something shorter than that limit):
+
+   ```bash
+   docker compose exec backend python -c "from backend.core.security import hash_password; print(hash_password('SuperSecret123'))"
+   ```
+
+   Copy the resulting hash value from the command output.
+
+   > **Tip:** If you prefer a longer passphrase, truncate it before hashing (for example `print(hash_password('my passphrase'[:72]))`) so the bcrypt handler accepts it.
+
+3. Insert the admin user into PostgreSQL, substituting your username and the copied hash:
+
+   ```bash
+   docker compose exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+     -c "INSERT INTO admin_users (username, password_hash) VALUES ('admin', 'PASTE_HASH_HERE');"
+   ```
+
+You can now sign in to the admin panel at `http://localhost/admin` using the username you inserted and the original password from step 2.
 
 ## Services
 
@@ -64,7 +92,7 @@ The frontend auto-detects locale through middleware and supports English (`/en`)
 1. Install Docker Engine and Docker Compose on the host (Ubuntu example):
 
    ```bash
-   sudo apt update && sudo apt install -y docker.io docker-compose
+   sudo apt update && sudo apt install -y docker.io docker-compose-plugin
    sudo systemctl enable --now docker
    ```
 
@@ -82,10 +110,10 @@ The frontend auto-detects locale through middleware and supports English (`/en`)
    # edit .env to fill in API keys, JWT secrets, database DSN, etc.
    ```
 
-4. Build and start the full stack:
+4. Build and start the full stack (override `BACKEND_PORT`, `FRONTEND_PORT`, or `ADMIN_PORT` in `.env` if these host ports are already in use):
 
    ```bash
-   docker-compose up -d --build
+   docker compose up -d --build
    ```
 
 5. Configure Nginx virtual hosts (`nginx/nginx.conf`) to map domains:
@@ -97,12 +125,19 @@ The frontend auto-detects locale through middleware and supports English (`/en`)
    Reload the running container after adjustments:
 
    ```bash
-   docker-compose exec nginx nginx -s reload
+   docker compose exec nginx nginx -s reload
    ```
 
 6. Provision TLS certificates using one of the following approaches:
 
-   - **Certbot** (Let's Encrypt): mount `/etc/letsencrypt` into the nginx container, run `certbot certonly --webroot -w /var/www/html -d taskmate.ai -d api.taskmate.ai -d panel.taskmate.ai`, and reference the issued certificates inside `nginx/nginx.conf`.
+   - **Certbot** (Let's Encrypt): mount `/etc/letsencrypt` into the nginx container, then from the host run:
+
+     ```bash
+     sudo certbot certonly --webroot -w /var/www/html \
+       -d taskmate.ai -d api.taskmate.ai -d panel.taskmate.ai [-d app.taskmate.ai]
+     ```
+
+     Replace the optional `[-d app.taskmate.ai]` entry with any additional domain names you have configured. After certificates are issued, reference them inside `nginx/nginx.conf` and reload the proxy with `docker compose exec nginx nginx -s reload`.
    - **Caddy**: alternatively, replace the nginx service with a Caddy container configured for automatic HTTPS (see <https://caddyserver.com/docs/quick-starts/reverse-proxy> for reference).
 
 7. Register the Telegram webhook so the bot receives updates:
@@ -117,3 +152,7 @@ The frontend auto-detects locale through middleware and supports English (`/en`)
    ```bash
    curl https://taskmate.ai/healthz
    ```
+
+### Troubleshooting
+
+- **`address already in use` when starting containers** – another process on the host is already bound to one of the exposed ports. Edit `.env` to set `BACKEND_PORT`, `FRONTEND_PORT`, or `ADMIN_PORT` to unused values, then rerun `docker compose up -d --build`.
