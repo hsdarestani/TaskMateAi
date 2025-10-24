@@ -1,158 +1,192 @@
-# TaskMate AI Monorepo
+# TaskMate Phase 1 – ربات تلگرام متصل به ابزارهای مدیریت پروژه
 
-TaskMate AI is a Docker-first monorepo bundling the core user workspace, an administrative control plane, and all infrastructure dependencies required for production deployments.
+این مخزن با هدف پیاده‌سازی گام‌به‌گام فاز اول محصول TaskMate آماده شده است. در این فاز تنها بر ساخت یک ربات تلگرام تمرکز می‌کنیم که بتواند:
 
-## Stack
+- برای هر کاربر، یک فضای کاری شخصی در ابزار مدیریت پروژه (در حال حاضر Trello) بسازد.
+- پیام‌های متنی، عکس‌ها و ویس‌های ارسالی کاربر را دریافت و به کارت/تسک تبدیل کند.
+- همه چیز را با حداقل پیش‌نیاز راه‌اندازی کند تا حتی اگر هیچ تجربه‌ای ندارید بتوانید از صفر شروع کنید.
 
-- **Backend**: FastAPI, JWT authentication with role-based access control (RBAC), Celery for async jobs, Redis broker, Telegram bot integration, PostgreSQL persistence.
-- **Frontend**: Next.js 14 App Router, TailwindCSS, multi-lingual (English, Persian, Arabic) with runtime locale detection and RTL support.
-- **Admin Panel**: React 18 (Vite), TailwindCSS, Chart.js & Recharts powered dashboards, JWT protected sign-in flow.
-- **Reverse Proxy**: Hardened Nginx gateway fronting all services.
+> **نکته:** ساختار کد به گونه‌ای طراحی شده تا بتوانیم در آینده اتصال به ابزارهای دیگر (مانند ClickUp یا Asana) و همچنین دیتابیس داخلی را به سادگی اضافه کنیم.
 
-## Getting Started
+---
 
-1. Duplicate `.env.example` to `.env` and adjust secrets:
+## فهرست مطالب
 
-   ```bash
-   cp .env.example .env
-   ```
+1. [پیش‌نیازهای نرم‌افزاری](#پیشنیازهای-نرم‌افزاری)
+2. [قدم صفر: ساخت ربات تلگرام](#قدم-صفر-ساخت-ربات-تلگرام)
+3. [قدم یک: گرفتن کلیدهای Trello](#قدم-یک-گرفتن-کلیدهای-trello)
+4. [قدم دو: آماده‌سازی محیط برنامه‌نویسی](#قدم-دو-آمادهسازی-محیط-برنامه‌نویسی)
+5. [قدم سه: تنظیم متغیرهای محیطی](#قدم-سه-تنظیم-متغیرهای-محیطی)
+6. [قدم چهار: نصب وابستگی‌ها و اجرای ربات](#قدم-چهار-نصب-وابستگیها-و-اجرای-ربات)
+7. [قدم پنج: شیوه کار با ربات](#قدم-پنج-شیوه-کار-با-ربات)
+8. [عیب‌یابی سریع](#عیبیابی-سریع)
+9. [نقشه راه گسترش فاز یک](#نقشه-راه-گسترش-فاز-یک)
+10. [نگاه به آینده (فازهای بعدی)](#نگاه-به-آینده-فازهای-بعدی)
 
-2. Bring the full stack online:
+---
 
-   ```bash
-   docker compose up -d --build
-   ```
+## پیش‌نیازهای نرم‌افزاری
 
-3. Access the services:
+اگر هیچ تجربه‌ای ندارید، کافی است موارد زیر را نصب کنید:
 
-   - API: `http://localhost/api/v1` (proxied through Nginx)
-   - Frontend: `http://localhost`
-   - Admin panel: `http://localhost/admin`
+- [Python 3.11](https://www.python.org/downloads/) یا نسخه بالاتر.
+- یک ویرایشگر متن ساده مثل [Visual Studio Code](https://code.visualstudio.com/).
+- دسترسی به اینترنت برای دانلود بسته‌ها و ارتباط با APIها.
 
-4. Health check: `GET http://localhost/healthz`
+**اختیاری ولی پیشنهاد شده:**
 
-### Creating the first admin user
+- نصب Git برای مدیریت نسخه‌ها.
+- نصب ابزار Postman یا Insomnia برای مشاهده درخواست‌های API.
 
-1. Ensure the database container is running and migrations have been applied:
+---
 
-   ```bash
-   docker compose up -d
-   docker compose exec backend alembic upgrade head
-   ```
+## قدم صفر: ساخت ربات تلگرام
 
-2. Generate a password hash inside the backend container (replace `SuperSecret123` with your desired password—bcrypt only accepts the first 72 bytes, so pick something shorter than that limit):
+1. در تلگرام به حساب کاربری `@BotFather` پیام بدهید.
+2. دستور `/newbot` را ارسال کنید و نام ربات را انتخاب کنید.
+3. BotFather در پایان پیامی حاوی **Token** به شما می‌دهد. این مقدار را کپی کنید؛ بعداً در فایل `.env` قرار می‌دهیم.
+4. برای آزمایش اولیه می‌توانید دستور `/start` را در چت با ربات جدید ارسال کنید، اما فعلاً پاسخی نمی‌گیرید تا کد را اجرا کنیم.
 
-   ```bash
-   docker compose exec backend python -c "from backend.core.security import hash_password; print(hash_password('SuperSecret123'))"
-   ```
+---
 
-   Copy the resulting hash value from the command output.
+## قدم یک: گرفتن کلیدهای Trello
 
-   > **Tip:** If you prefer a longer passphrase, truncate it before hashing (for example `print(hash_password('my passphrase'[:72]))`) so the bcrypt handler accepts it.
+1. وارد حساب کاربری Trello شوید یا اگر ندارید، رایگان ثبت‌نام کنید.
+2. به آدرس <https://trello.com/app-key> بروید.
+3. مقدار **API Key** را کپی کنید.
+4. دکمهٔ «Token» در همان صفحه را فشار دهید، وارد حساب شوید و اجازه دسترسی بدهید تا **API Token** بسازید.
+5. هر دو مقدار Key و Token را نگه دارید؛ در فایل `.env` استفاده خواهند شد.
 
-3. Insert the admin user into PostgreSQL, substituting your username and the copied hash:
+---
 
-   ```bash
-   docker compose exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
-     -c "INSERT INTO admin_users (username, password_hash) VALUES ('admin', 'PASTE_HASH_HERE');"
-   ```
+## قدم دو: آماده‌سازی محیط برنامه‌نویسی
 
-You can now sign in to the admin panel at `http://localhost/admin` using the username you inserted and the original password from step 2.
+تمام دستورات زیر را در ترمینال (Command Prompt در ویندوز یا Terminal در macOS/Linux) اجرا کنید. اگر تا حالا ترمینال باز نکرده‌اید، نگران نباشید؛ قدم به قدم همراهی‌تان می‌کنیم.
 
-## Services
+```bash
+# ۱) به پوشه‌ای که پروژه در آن است بروید
+cd path/to/TaskMateAi
 
-| Service   | Port | Description |
-|-----------|------|-------------|
-| backend   | 8000 | FastAPI app + Celery worker entrypoint |
-| frontend  | 3000 | Next.js locale-aware client |
-| admin     | 4173 | React admin console |
-| db        | 5432 | PostgreSQL 15 |
-| redis     | 6379 | Redis 7 cache/broker |
-| nginx     | 80/443 | Reverse proxy and SSL terminator |
+# ۲) یک محیط مجازی بسازید (فقط بار اول لازم است)
+python -m venv .venv
 
-All services are networked on the `taskmate` bridge network to simplify service discovery inside Docker.
+# ۳) محیط مجازی را فعال کنید
+# ویندوز
+.venv\Scripts\activate
+# مک یا لینوکس
+source .venv/bin/activate
+```
 
-## Backend Tips
+بعد از فعال‌سازی محیط مجازی، در ابتدای خط ترمینال عبارت `(venv)` یا مشابه آن را می‌بینید.
 
-- Celery workers can be scaled by adding a `celery` service referencing `backend/app/worker.py` if you require dedicated processing containers.
-- Telegram bot execution is optional. Provide `TELEGRAM_TOKEN` to enable real message polling inside the backend container.
+---
 
-## Frontend Locales
+## قدم سه: تنظیم متغیرهای محیطی
 
-The frontend auto-detects locale through middleware and supports English (`/en`), Persian (`/fa`), and Arabic (`/ar`). RTL layout is automatically enforced for Persian and Arabic locales.
+1. فایل `.env.example` را باز کنید.
+2. یک کپی از آن با نام `.env` بسازید.
+3. مقادیر زیر را در فایل `.env` وارد کنید:
 
-## Production Notes
+```
+TELEGRAM_BOT_TOKEN=توکن-ربات-تلگرام
+TRELLO_API_KEY=کلید-api-تروللو
+TRELLO_API_TOKEN=توکن-api-تروللو
+TRELLO_DEFAULT_LIST_NAME=Inbox
+```
 
-- Supply TLS certificates to `nginx` by mounting files into the `nginx_certs` volume. During local development, the HTTPS server simply redirects to HTTP.
-- Override environment variables via Docker Compose or a secrets manager as needed for deployment targets.
-- Configure nightly database backups by mounting the repository's `ops/nightly_postgres_backup.sh` script into a cron job or scheduled task. Set `POSTGRES_DSN`, `BACKUP_DIR`, and optional `RETENTION_DAYS` so the script can emit compressed dumps and prune anything older than the retention window.
+> اگر دوست داشتید نام لیست پیش‌فرض چیز دیگری باشد (مثلاً "ورودی‌ها"), مقدار `TRELLO_DEFAULT_LIST_NAME` را تغییر دهید.
 
-## Production Deployment
+---
 
-1. Install Docker Engine and Docker Compose on the host (Ubuntu example):
+## قدم چهار: نصب وابستگی‌ها و اجرای ربات
 
-   ```bash
-   sudo apt update && sudo apt install -y docker.io docker-compose-plugin
-   sudo systemctl enable --now docker
-   ```
+در همان ترمینال فعال شده، دستورات زیر را وارد کنید:
 
-2. Clone the repository and move into it:
+```bash
+# نصب کتابخانه‌های موردنیاز
+pip install -r requirements.txt
 
-   ```bash
-   git clone https://github.com/your-org/taskmate-ai.git
-   cd taskmate-ai
-   ```
+# اجرای ربات
+python -m bot.main
+```
 
-3. Copy the environment template and provide the required secrets:
+اگر همه‌چیز درست باشد، در ترمینال پیغام `Bot is starting` را می‌بینید و ربات روشن است.
 
-   ```bash
-   cp .env.example .env
-   # edit .env to fill in API keys, JWT secrets, database DSN, etc.
-   ```
+برای خاموش کردن ربات کافی است در ترمینال کلیدهای `Ctrl + C` را بزنید.
 
-4. Build and start the full stack (override `BACKEND_PORT`, `FRONTEND_PORT`, or `ADMIN_PORT` in `.env` if these host ports are already in use):
+---
 
-   ```bash
-   docker compose up -d --build
-   ```
+## قدم پنج: شیوه کار با ربات
 
-5. Configure Nginx virtual hosts (`nginx/nginx.conf`) to map domains:
+1. در تلگرام، پنجره گفت‌وگو با ربات را باز کنید و دستور `/start` را بفرستید.
+2. ربات برای شما یک برد خصوصی در Trello با نامی مثل `TaskMate Telegram Workspace #123456789` می‌سازد.
+3. از این لحظه هر پیام متنی را بفرستید:
+   - خط اول پیام عنوان کارت می‌شود.
+   - خطوط بعدی توضیحات کارت هستند.
+   - کارت جدید در لیست `Inbox` برد شما ساخته می‌شود.
+4. اگر عکس بفرستید، یک کارت جدید با عکس پیوست شده ساخته می‌شود.
+5. اگر ویس بفرستید، فایل صوتی به عنوان پیوست کارت ذخیره می‌شود.
+6. از طریق وب‌سایت یا اپلیکیشن Trello می‌توانید کارت‌ها را جابه‌جا کنید، اعضا اضافه کنید یا وضعیت آن‌ها را تغییر دهید.
 
-   - `taskmate.ai` → frontend service
-   - `api.taskmate.ai` → backend service
-   - `panel.taskmate.ai` → admin-panel service
+> فعلاً هر پیام یک کارت جدید می‌سازد. در ادامهٔ نقشه راه یاد می‌گیرید چطور فرمان‌های پیچیده‌تر (مثل Done کردن یا آپدیت کارت موجود) اضافه کنید.
 
-   Reload the running container after adjustments:
+---
 
-   ```bash
-   docker compose exec nginx nginx -s reload
-   ```
+## عیب‌یابی سریع
 
-6. Provision TLS certificates using one of the following approaches:
+| مشکل | راه‌حل پیشنهادی |
+|------|------------------|
+| پیام «Missing required environment variables» | فایل `.env` را بررسی کنید؛ شاید مقدارها را اشتباه نوشته باشید یا فایل در همان پوشهٔ پروژه نباشد. |
+| پیام «در اتصال به Trello خطایی رخ داد» | از اتصال اینترنت مطمئن شوید. سپس وارد وب‌سایت Trello شوید و بررسی کنید API Token هنوز معتبر است. در صورت نیاز دوباره Token بسازید. |
+| عکس یا ویس ذخیره نمی‌شود | اطمینان حاصل کنید ربات به پیام‌های مدیا دسترسی دارد. اگر از سرور بدون فضای کافی استفاده می‌کنید، فضای دیسک را چک کنید. |
+| اجرا شدن ربات متوقف می‌شود | ترمینال را بررسی کنید؛ ممکن است خطای دیگری چاپ شده باشد. برای راهنمایی بیشتر می‌توانید Issues باز کنید. |
 
-   - **Certbot** (Let's Encrypt): mount `/etc/letsencrypt` into the nginx container, then from the host run:
+---
 
-     ```bash
-     sudo certbot certonly --webroot -w /var/www/html \
-       -d taskmate.ai -d api.taskmate.ai -d panel.taskmate.ai [-d app.taskmate.ai]
-     ```
+## نقشه راه گسترش فاز یک
 
-     Replace the optional `[-d app.taskmate.ai]` entry with any additional domain names you have configured. After certificates are issued, reference them inside `nginx/nginx.conf` and reload the proxy with `docker compose exec nginx nginx -s reload`.
-   - **Caddy**: alternatively, replace the nginx service with a Caddy container configured for automatic HTTPS (see <https://caddyserver.com/docs/quick-starts/reverse-proxy> for reference).
+برای اینکه به تدریج امکانات بیشتری اضافه کنیم، پیشنهاد می‌شود مراحل زیر را دنبال کنید:
 
-7. Register the Telegram webhook so the bot receives updates:
+1. **پشتیبانی از ابزارهای بیشتر:** ساخت ماژول‌های مشابه Trello برای ابزارهایی مثل ClickUp، Notion یا Asana که API رایگان دارند.
+2. **فرمان‌های متنی پیشرفته:** تعریف الگوهایی مثل `done #123` برای بستن کارت یا `comment #123 متن` برای افزودن نظر.
+3. **مدیریت زبان طبیعی:** استفاده از کتابخانه‌های ساده NLP برای تشخیص نیت کاربر از روی متن و تبدیل خودکار به عملیات مناسب.
+4. **ارسال خلاصه روزانه:** هر روز صبح گزارش کارت‌های ایجاد شده یا وضعیت تسک‌های معوق را به کاربر ارسال کنید.
+5. **بهبود امنیت:** ذخیره امن‌تر Tokenها و امکان چرخش خودکار آن‌ها.
 
-   ```bash
-   curl -X POST "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
-     -d "url=https://api.taskmate.ai/telegram/webhook/<secret>"
-   ```
+هرکدام از این مراحل را می‌توانید در شاخه‌های جداگانه Git پیاده کنید تا تاریخچه تمیز بماند.
 
-8. Validate the deployment by hitting the health endpoint:
+---
 
-   ```bash
-   curl https://taskmate.ai/healthz
-   ```
+## نگاه به آینده (فازهای بعدی)
 
-### Troubleshooting
+وقتی فاز اول پایدار شد، می‌توانیم به سراغ اهداف بلندمدت برویم:
 
-- **`address already in use` when starting containers** – another process on the host is already bound to one of the exposed ports. Edit `.env` to set `BACKEND_PORT`, `FRONTEND_PORT`, or `ADMIN_PORT` to unused values, then rerun `docker compose up -d --build`.
+- **فاز ۲:** طراحی دیتابیس داخلی برای نگهداری اطلاعات کاربران و تسک‌ها، بدون وابستگی کامل به سرویس‌های بیرونی.
+- **فاز ۳:** تبدیل شدن به نرم‌افزار مدیریت پروژه مستقل با امکان ساخت تیم، دعوت همکاران و اشتراک‌گذاری بردها.
+- **فاز ۴:** اضافه کردن داشبورد وب، تحلیل عملکرد تیم‌ها، گزارش‌های پیشرفته و ادغام با سرویس‌های پیام‌رسان دیگر.
+
+تا آن زمان، همین ربات تلگرام پایه‌ای محکم برای آزمایش ایده و جمع‌آوری بازخورد کاربران فراهم می‌کند.
+
+---
+
+## ساختار پروژه
+
+```
+TaskMateAi/
+├── bot/
+│   ├── __init__.py
+│   ├── config.py          # مدیریت متغیرهای محیطی
+│   ├── main.py            # نقطه ورود ربات تلگرام و هندلرها
+│   ├── storage.py         # ذخیره‌سازی ساده اطلاعات کاربران در فایل JSON
+│   ├── trello_client.py   # توابع ارتباط با API ترلو
+│   └── workspace.py       # ساخت و مدیریت فضای کار هر کاربر
+├── data/
+│   └── .gitkeep           # پوشه‌ای برای ذخیره فایل user_workspaces.json
+├── docs/                  # می‌توانید راهنماهای بیشتر اینجا قرار دهید
+├── requirements.txt       # وابستگی‌های پایتون
+├── .env.example           # قالب متغیرهای محیطی
+├── .gitignore
+└── README.md
+```
+
+اگر سؤالی داشتید یا به کمک بیشتری نیاز داشتید، می‌توانید Issue جدید باز کنید یا سؤال‌تان را همین‌جا مطرح کنید. موفق باشید! 🚀
